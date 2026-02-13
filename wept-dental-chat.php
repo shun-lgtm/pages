@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WEPT Dental Chat
-Description: KINS WITH 動物病院向け 歯科相談UI（右ドロワー形式）
+Description: KINS WITH 
 Version: 2.1.0
 Author: WEPT
 License: GPLv2 or later
@@ -58,7 +58,7 @@ JS;
   border: 0;
 }
 
-/* === FAB（相談するボタン） === */
+/* === FABï¼ˆç›¸è«‡ã™ã‚‹ãƒœã‚¿ãƒ³ï¼‰ === */
 #webpilot-root .wept-fab {
   position: fixed;
   right: 12px;
@@ -74,7 +74,7 @@ JS;
   transition: opacity 0.2s ease;
 }
 
-/* === オーバーレイ === */
+/* === ã‚ªãƒ¼ãƒãƒ¼ãƒ¬ã‚¤ === */
 #webpilot-root .wept-overlay {
   position: fixed;
   top: 0;
@@ -92,7 +92,7 @@ JS;
   pointer-events: auto;
 }
 
-/* === ドロワー === */
+/* === ãƒ‰ãƒ­ãƒ¯ãƒ¼ === */
 #webpilot-root .wept-drawer {
   position: fixed;
   right: 12px;
@@ -112,6 +112,16 @@ JS;
 }
 #webpilot-root .wept-drawer.is-open {
   transform: translateX(0);
+}
+@media (max-width: 640px) {
+  #webpilot-root .wept-drawer {
+    height: 100dvh;
+    max-height: none;
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    border-radius: 0;
+  }
 }
 
 /* === Body === */
@@ -248,7 +258,7 @@ CSS;
         true
     );
 
-    // heic2any（HEIC→JPG変換ライブラリ）
+    // heic2anyï¼ˆHEICâ†’JPGå¤‰æ›ãƒ©ã‚¤ãƒ–ãƒ©ãƒªï¼‰
     wp_register_script(
         'wept-heic2any',
         'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js',
@@ -270,7 +280,7 @@ CSS;
         true
     );
 
-    // article-summaries.json を JS に渡す（要約機能用）
+    // article-summaries.json ã‚’ JS ã«æ¸¡ã™ï¼ˆè¦ç´„æ©Ÿèƒ½ç”¨ï¼‰
     $json_path = plugin_dir_path(__FILE__) . 'data/article-summaries.json';
     if (file_exists($json_path)) {
         $articles = json_decode(file_get_contents($json_path), true);
@@ -279,7 +289,7 @@ CSS;
         }
     }
 
-    // プラグイン設定（アセットURLなど）を JS に渡す
+    // ãƒ—ãƒ©ã‚°ã‚¤ãƒ³è¨­å®šï¼ˆã‚¢ã‚»ãƒƒãƒˆURLãªã©ï¼‰ã‚’ JS ã«æ¸¡ã™
     wp_localize_script('wept-dental-chat-app', 'WEPT_CONFIG', array(
         'assetsUrl' => plugin_dir_url(__FILE__) . 'assets/',
     ));
