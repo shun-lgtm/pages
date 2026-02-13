@@ -267,36 +267,33 @@
       document.getElementById('testStatus').textContent =
         '✅ ' + Object.keys(data).length + '記事読み込み済み';
 
-      // wept-app.js を動的に読み込み
-      var script = document.createElement('script');
-      script.type = 'text/babel';
-      script.src = './assets/wept-app.js';
-      script.setAttribute('data-type', 'module');
-      document.body.appendChild(script);
+      // wept-app.js を読み込み → ページシミュレーション用にパッチ → Babel変換
+      var simPage = new URLSearchParams(window.location.search).get('page') || '';
 
-      // Babel に手動で変換させる
-      setTimeout(function() {
-        if (window.Babel) {
-          var scripts = document.querySelectorAll('script[type="text/babel"]:not([data-babel-processed])');
-          scripts.forEach(function(s) {
-            if (s.src && !s.dataset.babelProcessed) {
-              fetch(s.src)
-                .then(function(r) { return r.text(); })
-                .then(function(code) {
-                  var transformed = Babel.transform(code, { presets: ['react'] }).code;
-                  var newScript = document.createElement('script');
-                  newScript.textContent = transformed;
-                  document.body.appendChild(newScript);
-                  s.dataset.babelProcessed = 'true';
-                })
-                .catch(function(e) {
-                  document.getElementById('testStatus').textContent = '❌ JS読み込みエラー';
-                  console.error('Babel transform error:', e);
-                });
-            }
-          });
-        }
-      }, 500);
+      fetch('./assets/wept-app.js')
+        .then(function(r) { return r.text(); })
+        .then(function(code) {
+          // getJournalKey を差し替え: pathname の代わりに URLパラメータ ?page= を参照
+          if (simPage) {
+            code = code.replace(
+              /function getJournalKey\(\)\s*\{[^}]+\}/,
+              'function getJournalKey() { ' +
+              'var p = new URLSearchParams(window.location.search).get("page") || ""; ' +
+              'var m = p.match(/(journal\\/\\d+)/); ' +
+              'return m ? m[1] : null; ' +
+              '}'
+            );
+          }
+
+          var transformed = Babel.transform(code, { presets: ['react'] }).code;
+          var newScript = document.createElement('script');
+          newScript.textContent = transformed;
+          document.body.appendChild(newScript);
+        })
+        .catch(function(e) {
+          document.getElementById('testStatus').textContent = '❌ JS読み込みエラー';
+          console.error('Babel transform error:', e);
+        });
     })
     .catch(function(e) {
       document.getElementById('testStatus').textContent = '❌ JSON読み込みエラー';
