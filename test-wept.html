@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WEPT テスト環境</title>
+<style>
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f0eb;
+    min-height: 100vh;
+  }
+  .test-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999999;
+    background: #2d2d2d;
+    color: #fff;
+    padding: 8px 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .test-bar label { color: #aaa; }
+  .test-bar select, .test-bar input {
+    background: #444;
+    color: #fff;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  .test-bar button {
+    background: #8B6B5C;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .test-bar .status { margin-left: auto; color: #6B8F71; }
+  .mock-page {
+    margin-top: 44px;
+    padding: 40px 20px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .mock-page h1 { font-size: 22px; color: #3d3d3d; margin-bottom: 12px; }
+  .mock-page p { font-size: 14px; color: #666; line-height: 1.8; }
+  .mock-page .breadcrumb { font-size: 12px; color: #999; margin-bottom: 20px; }
+
+  /* ===== PHPが注入するCSS（そのまま複製） ===== */
+  #webpilot-root {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    position: relative;
+  }
+  #webpilot-root *, #webpilot-root *::before, #webpilot-root *::after { box-sizing: border-box; }
+  #webpilot-root img { max-width: 100%; height: auto; display: block; }
+  #webpilot-root button { cursor: pointer; background: none; border: 0; }
+
+  #webpilot-root .wept-fab {
+    position: fixed; right: 12px; bottom: 100px; z-index: 99997;
+    padding: 10px 14px; border-radius: 9999px; border: 1px solid #e8ddd3;
+    background: #fff9f5; color: #3d3d3d; font-size: 13px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12); transition: opacity 0.2s ease;
+  }
+  #webpilot-root .wept-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99998;
+    background: rgba(0,0,0,0.28); opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  #webpilot-root .wept-overlay.is-open { opacity: 1; pointer-events: auto; }
+  #webpilot-root .wept-drawer {
+    position: fixed; right: 12px; bottom: 40px; height: 90%; max-height: 750px;
+    width: min(420px, calc(100vw - 24px)); z-index: 99999;
+    background: #fff; border-radius: 18px; overflow: hidden;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.18);
+    display: flex; flex-direction: column;
+    transform: translateX(110%); transition: transform 0.25s ease;
+  }
+  #webpilot-root .wept-drawer.is-open { transform: translateX(0); }
+  #webpilot-root .wept-body {
+    flex: 1; min-height: 0; overflow-y: auto; padding: 14px;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  #webpilot-root .wept-footer {
+    display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid #e8e0d5; flex-shrink: 0;
+  }
+  #webpilot-root .wept-input {
+    flex: 1; border-radius: 9999px; border: 1px solid #e8ddd3;
+    padding: 10px 12px; background: #f5ede4; color: #3d3d3d; font-size: 14px; outline: none;
+  }
+  #webpilot-root .wept-send {
+    width: 44px; height: 44px; border-radius: 9999px; border: 0;
+    background: #8B6B5C; color: #fff; font-size: 16px; flex-shrink: 0;
+  }
+  #webpilot-root .wept-send:disabled { opacity: 0.5; }
+  #webpilot-root .wept-btn {
+    background-color: #FFF9F5; border: 1px solid #E8DDD3; border-radius: 12px;
+    padding: 12px 8px; cursor: pointer; text-align: center; width: 100%;
+  }
+  #webpilot-root .wept-btn-primary {
+    background-color: #8B6B5C; color: #fff; border: none; border-radius: 12px;
+    padding: 12px; cursor: pointer; width: 100%; font-size: 14px; font-weight: bold;
+  }
+  #webpilot-root .wept-btn-secondary {
+    background-color: #F5EDE4; color: #5D5D5D; border: none; border-radius: 12px;
+    padding: 12px; cursor: pointer; width: 100%; font-size: 14px;
+  }
+  #webpilot-root {
+    --wept-brown: #8B6B5C; --wept-brown-dark: #5D4E4E; --wept-brown-line: #965D57;
+    --wept-text: #5D5D5D; --wept-text-light: #8B7B6B; --wept-text-muted: #A69B8D;
+    --wept-bg: #FDF8F3; --wept-bg-card: #F5EDE4; --wept-border: #E8E0D5;
+  }
+  @keyframes weptLoadingBar {
+    0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; }
+  }
+  #webpilot-root .wept-loading-bar { animation: weptLoadingBar 2s ease-in-out infinite; }
+  @keyframes weptDotBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- テストバー -->
+<div class="test-bar">
+  <strong>WEPT TEST</strong>
+  <label>ページ:</label>
+  <select id="pageSim">
+    <option value="">トップページ</option>
+    <option value="journal/3003">journal/3003 (歯周炎症例)</option>
+    <option value="journal/2810">journal/2810 (歯周治療)</option>
+    <option value="journal/1703">journal/1703 (破折症例)</option>
+    <option value="journal/2769">journal/2769 (犬歯抜髄)</option>
+    <option value="journal/3759">journal/3759 (PLE症例)</option>
+    <option value="clinic/futakotamagawa/dental">clinic/dental (歯科LP)</option>
+  </select>
+  <button onclick="applyPage()">適用</button>
+  <span class="status" id="testStatus">読み込み中...</span>
+</div>
+
+<!-- モックページコンテンツ -->
+<div class="mock-page" id="mockPage">
+  <div class="breadcrumb">kinswith-vet.com / <span id="breadcrumbPath">トップ</span></div>
+  <h1 id="mockTitle">KINS WITH 動物病院</h1>
+  <p id="mockDesc">右下のボタンからWEPTを開いてテストしてください。テストバーでページを切り替えると、要約機能のテストができます。</p>
+</div>
+
+<!-- WEPT マウントポイント -->
+<div id="webpilot-root"></div>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  window.tailwind = window.tailwind || {};
+  window.tailwind.config = {
+    corePlugins: { preflight: false },
+    important: '#webpilot-root'
+  };
+</script>
+
+<!-- React -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<!-- Babel -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- heic2any -->
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+
+<!-- データ注入（wp_localize_script の代替） -->
+<script>
+  // ページシミュレーション: URLパラメータ or selectで切り替え
+  var _simPath = '';
+
+  // pathname を上書きして journal ページを再現
+  var _originalPathname = Object.getOwnPropertyDescriptor(window.location.__proto__, 'pathname');
+
+  function setSimulatedPath(path) {
+    _simPath = path;
+    try {
+      Object.defineProperty(window.location, 'pathname', {
+        get: function() { return _simPath ? '/' + _simPath + '/' : '/'; },
+        configurable: true
+      });
+    } catch(e) {
+      // fallback: location override が効かない環境用
+      console.warn('pathname override failed, using fallback');
+    }
+  }
+
+  // URL パラメータから初期ページを設定
+  var urlParams = new URLSearchParams(window.location.search);
+  var initPage = urlParams.get('page') || '';
+  if (initPage) {
+    document.getElementById('pageSim').value = initPage;
+    setSimulatedPath(initPage);
+  }
+
+  function applyPage() {
+    var sel = document.getElementById('pageSim');
+    var path = sel.value;
+
+    // URLパラメータを更新（リロードなし）
+    var url = new URL(window.location);
+    if (path) {
+      url.searchParams.set('page', path);
+    } else {
+      url.searchParams.delete('page');
+    }
+    window.history.replaceState({}, '', url);
+
+    // ページをリロードして再初期化
+    window.location.reload();
+  }
+
+  // WEPT_CONFIG（assetsUrl）
+  // GitHub Pages の場合はこのHTMLと同じディレクトリの assets/ を指す
+  var WEPT_CONFIG = {
+    assetsUrl: './assets/'
+  };
+
+  // WEPT_ARTICLES は別ファイルから読み込み
+  var WEPT_ARTICLES = {};
+
+  // モックページの表示更新
+  function updateMockPage(path) {
+    var bc = document.getElementById('breadcrumbPath');
+    var title = document.getElementById('mockTitle');
+    var desc = document.getElementById('mockDesc');
+
+    if (path && path.startsWith('journal/')) {
+      bc.textContent = path;
+      title.textContent = '記事ページ（テスト）';
+      desc.textContent = 'このページでは要約機能のテストができます。WEPTを開くと「この記事を要約する」ボタンが表示されます。';
+    } else if (path && path.includes('dental')) {
+      bc.textContent = path;
+      title.textContent = '歯科治療ページ（テスト）';
+      desc.textContent = 'WEPTの歯科LPと連動するページのシミュレーションです。';
+    } else {
+      bc.textContent = 'トップ';
+      title.textContent = 'KINS WITH 動物病院';
+      desc.textContent = '右下のボタンからWEPTを開いてテストしてください。';
+    }
+  }
+
+  updateMockPage(initPage);
+</script>
+
+<!-- article-summaries.json を読み込んでから wept-app.js を実行 -->
+<script>
+  fetch('./data/article-summaries.json')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      WEPT_ARTICLES = data;
+      document.getElementById('testStatus').textContent =
+        '✅ ' + Object.keys(data).length + '記事読み込み済み';
+
+      // wept-app.js を動的に読み込み
+      var script = document.createElement('script');
+      script.type = 'text/babel';
+      script.src = './assets/wept-app.js';
+      script.setAttribute('data-type', 'module');
+      document.body.appendChild(script);
+
+      // Babel に手動で変換させる
+      setTimeout(function() {
+        if (window.Babel) {
+          var scripts = document.querySelectorAll('script[type="text/babel"]:not([data-babel-processed])');
+          scripts.forEach(function(s) {
+            if (s.src && !s.dataset.babelProcessed) {
+              fetch(s.src)
+                .then(function(r) { return r.text(); })
+                .then(function(code) {
+                  var transformed = Babel.transform(code, { presets: ['react'] }).code;
+                  var newScript = document.createElement('script');
+                  newScript.textContent = transformed;
+                  document.body.appendChild(newScript);
+                  s.dataset.babelProcessed = 'true';
+                })
+                .catch(function(e) {
+                  document.getElementById('testStatus').textContent = '❌ JS読み込みエラー';
+                  console.error('Babel transform error:', e);
+                });
+            }
+          });
+        }
+      }, 500);
+    })
+    .catch(function(e) {
+      document.getElementById('testStatus').textContent = '❌ JSON読み込みエラー';
+      console.error('Failed to load articles:', e);
+    });
+</script>
+
+</body>
+</html>
