@@ -343,8 +343,8 @@ const BRUSHING_LP_PAGES = [
     title: 'おすすめアイテム',
     subtitle: 'まだお気に入りが見つかっていなければ、こちらもどうぞ。',
     products: [
-      { name: 'DENTAL GEL for dogs', desc: '歯磨きが好きになる美味しいジェル', url: 'https://kinswith-vet.com/product/1754/', image: '' },
-      { name: '泡雪プラチナナノ歯ブラシ', desc: 'とろけるような柔らかさで刺激を抑えた', url: 'https://kinswith-vet.com/product/1750/', image: '' },
+      { name: 'DENTAL GEL for dogs', desc: '歯磨きが好きになる美味しいジェル', url: 'https://kinswith-vet.com/product/1754/', image: 'https://kinswith-vet-com.s3.us-west-1.amazonaws.com/wp-content/uploads/2023/11/13021818/DENTAL-GEL-for-dogs.webp' },
+      { name: '泡雪プラチナナノ歯ブラシ', desc: 'とろけるような柔らかさで刺激を抑えた', url: 'https://kinswith-vet.com/product/1750/', image: 'https://kinswith-vet-com.s3.us-west-1.amazonaws.com/wp-content/uploads/2024/02/17231210/wawyknash.webp' },
     ],
   },
   {
@@ -902,14 +902,32 @@ function WebpilotChat() {
           )}
 
           {/* ===== photo-result ===== */}
-          {currentView === "photo-result" && diagnosisResult && (
+          {currentView === "photo-result" && diagnosisResult && (() => {
+            const confNum = parseFloat(String(diagnosisResult.confidence));
+            const isLowConf = isNaN(confNum) || confNum <= 60;
+            return isLowConf ? (
             <>
               <Header title="チェック結果" />
-              
               {imagePreview && (
-                <img src={imagePreview} alt="診断した画像" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px' }} />
+                <img src={imagePreview} alt="" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px' }} />
               )}
-              
+              <div style={{ backgroundColor: '#FFF8E1', borderRadius: '12px', padding: '16px', marginBottom: '16px', border: '1px solid #FFE082' }}>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#E65100', marginBottom: '8px' }}>撮り直しをおすすめします</div>
+                <p style={{ fontSize: '13px', color: '#5D5D5D', lineHeight: 1.6, marginBottom: '12px' }}>写真が鮮明でないか、歯が十分に写っていない可能性があります。明るい場所で、歯と歯ぐきが見えるように撮影してください。</p>
+                <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '12px', border: '1px solid #FFE082' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#8B6B5C', marginBottom: '4px' }}>撮影のコツ</p>
+                  <p style={{ fontSize: '12px', color: '#5D5D5D', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{"・明るい場所で撮影する\n・唇をめくって歯全体を見せる\n・ブレないように固定する"}</p>
+                </div>
+              </div>
+              <button onClick={() => { setDiagnosisResult(null); setCurrentView('photo-check'); }} style={s.btnPrimary}>もう一度撮影する</button>
+              <button onClick={backToMenu} style={{ ...s.btnSecondary, marginTop: '8px' }}>TOPに戻る</button>
+            </>
+            ) : (
+            <>
+              <Header title="チェック結果" />
+              {imagePreview && (
+                <img src={imagePreview} alt="" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '12px', marginBottom: '12px' }} />
+              )}
               <div style={{ backgroundColor: '#FDF8F3', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
                 <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#5D4E4E', marginBottom: '8px' }}>{diagnosisResult.prediction}</div>
                 <div style={{ display: 'inline-block', fontSize: '11px', backgroundColor: '#E8E0D5', color: '#5D4E4E', padding: '4px 8px', borderRadius: '4px', marginBottom: '12px' }}>信頼度: {diagnosisResult.confidence}</div>
@@ -919,10 +937,10 @@ function WebpilotChat() {
                   <p style={{ fontSize: '13px', color: '#5D5D5D', margin: 0, lineHeight: 1.6 }}>{diagnosisResult.advice}</p>
                 </div>
               </div>
-              
               <button onClick={backToMenu} style={s.btnPrimary}>TOPに戻る</button>
             </>
-          )}
+            );
+          })()}
 
           {/* ===== breath-check ===== */}
           {currentView === "breath-check" && (
@@ -1335,10 +1353,9 @@ function WebpilotChat() {
                       <p style={{ fontSize: '13px', color: '#5D5D5D', whiteSpace: 'pre-line', margin: 0, lineHeight: 1.7 }}>{bp.body}</p>
                     </div>
                     {bp.tips && (
-                      <div style={{ marginBottom: '14px' }}>
-                        <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#8B6B5C', marginBottom: '6px' }}>ポイント</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
                         {bp.tips.map((tip, i) => (
-                          <div key={i} style={{ fontSize: '12px', color: '#5D5D5D', marginBottom: '4px', paddingLeft: '8px' }}>・{tip}</div>
+                          <span key={i} style={{ fontSize: '12px', color: '#5D5D5D', backgroundColor: '#F5EDE4', padding: '4px 12px', borderRadius: '9999px', whiteSpace: 'nowrap' }}>{tip}</span>
                         ))}
                       </div>
                     )}
@@ -1366,10 +1383,9 @@ function WebpilotChat() {
                       <p style={{ fontSize: '13px', color: '#5D5D5D', whiteSpace: 'pre-line', margin: 0, lineHeight: 1.7 }}>{bp.body}</p>
                     </div>
                     {bp.tips && (
-                      <div style={{ marginBottom: '14px' }}>
-                        <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#8B6B5C', marginBottom: '6px' }}>ポイント</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
                         {bp.tips.map((tip, i) => (
-                          <div key={i} style={{ fontSize: '12px', color: '#5D5D5D', marginBottom: '4px', paddingLeft: '8px' }}>・{tip}</div>
+                          <span key={i} style={{ fontSize: '12px', color: '#5D5D5D', backgroundColor: '#F5EDE4', padding: '4px 12px', borderRadius: '9999px', whiteSpace: 'nowrap' }}>{tip}</span>
                         ))}
                       </div>
                     )}
