@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>皮膚セルフチェック｜KINS WITH Animal Hospital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --primary: #C55E56;
+    --dark: #5A3C37;
+    --mid: #965D57;
+    --accent: #CDA094;
+    --light: #EBD5CD;
+    --bg: #F7F6F4;
+    --white: #FFFFFF;
+    --text: #3A2E2B;
+    --text-sub: #8C7A74;
+    --border: #E8DDD8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Utility ─── */
+  .hidden { display: none !important; }
+
+  /* ─── Layout Shell ─── */
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Header ─── */
+  .app-header {
+    padding: 20px 24px 0;
+    text-align: center;
+  }
+  .app-header .brand {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+
+  /* ─── Paw Progress ─── */
+  .progress-wrap {
+    padding: 16px 24px 0;
+  }
+  .paw-track {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+  .paw {
+    font-size: 16px;
+    opacity: 0.2;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: grayscale(1);
+  }
+  .paw.filled {
+    opacity: 1;
+    filter: grayscale(0);
+    animation: pawPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes pawPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.3); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .paw-done {
+    display: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--primary);
+    text-align: center;
+    margin-top: 6px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .paw-done.show {
+    display: block;
+    animation: fadeIn 0.35s ease;
+  }
+
+  /* ─── Particles ─── */
+  .particle-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFly var(--duration) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  @keyframes particleFly {
+    0% {
+      transform: translate(0, 0) scale(1) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot));
+      opacity: 0;
+    }
+  }
+
+  /* ─── Screen Container ─── */
+  .screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    animation: fadeIn 0.35s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Intro Screen ─── */
+  .intro {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .intro-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 28px;
+  }
+
+  .intro h1 {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    color: var(--dark);
+  }
+
+  .intro p {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+  }
+
+  .intro .note {
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 20px;
+    line-height: 1.7;
+  }
+
+  /* ─── Buttons ─── */
+  .btn-primary {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 32px auto 0;
+    padding: 16px;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+  .btn-primary:hover {
+    background: var(--mid);
+  }
+
+  .btn-secondary {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 12px auto 0;
+    padding: 14px;
+    background: transparent;
+    color: var(--text-sub);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .btn-secondary:hover {
+    border-color: var(--accent);
+  }
+
+  /* ─── Question Screen ─── */
+  .question-screen {
+    justify-content: center;
+  }
+
+  .q-category {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  .q-title {
+    font-size: 20px;
+    font-weight: 900;
+    line-height: 1.6;
+    color: var(--dark);
+    margin-bottom: 12px;
+  }
+
+  .q-desc {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-sub);
+    margin-bottom: 32px;
+  }
+
+  .q-hint {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 32px;
+  }
+
+  .q-hint-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .q-hint p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-sub);
+  }
+
+  /* Answer Buttons */
+  .answer-group {
+    display: flex;
+    gap: 12px;
+    max-width: 320px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .answer-btn {
+    flex: 1;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+
+  .answer-btn:hover {
+    border-color: var(--accent);
+  }
+
+  .answer-btn.yes:hover {
+    border-color: var(--primary);
+    background: rgba(197,94,86,0.05);
+    color: var(--primary);
+  }
+
+  .answer-btn.no:hover {
+    border-color: var(--text-sub);
+  }
+
+  .answer-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* ─── Input Screen ─── */
+  .input-screen {
+    justify-content: center;
+  }
+
+  .input-screen h2 {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--dark);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .input-screen .sub {
+    font-size: 13px;
+    color: var(--text-sub);
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+  }
+
+  .text-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 24px;
+  }
+  .text-input:focus {
+    border-color: var(--primary);
+  }
+  .text-input::placeholder {
+    color: var(--accent);
+  }
+
+  /* Photo Upload */
+  .photo-upload-area {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 240px;
+    margin: 0 auto 8px;
+    border: 2px dashed var(--border);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .photo-upload-area:hover {
+    border-color: var(--accent);
+    background: rgba(205,160,148,0.05);
+  }
+
+  .photo-upload-area.has-photo {
+    border-style: solid;
+    border-color: var(--primary);
+  }
+
+  .photo-upload-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
+
+  .upload-placeholder {
+    text-align: center;
+    color: var(--accent);
+  }
+
+  .upload-placeholder .icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .upload-placeholder p {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .photo-skip {
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 20px;
+  }
+
+  .photo-skip span {
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  #photoInput {
+    display: none;
+  }
+
+  /* ─── Result Screen ─── */
+  .result-screen {
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  .result-screen h2 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--dark);
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .result-sub {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+
+  .card-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  /* ─── Generated Cards ─── */
+
+  /* FRONT CARD */
+  .gen-front {
+    width: 340px;
+    height: 430px;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    background: var(--primary);
+    box-shadow: 0 12px 40px rgba(197,94,86,0.25);
+  }
+
+  .gen-front .noise {
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='5' stitchTiles='stitch' seed='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)' opacity='0.06'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .gen-front .paper-texture {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255,255,255,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 80%, rgba(0,0,0,0.03) 0%, transparent 45%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .gen-front .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(170deg, rgba(197,94,86,0) 30%, rgba(80,30,27,0.6) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .gen-front .inner {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+  }
+
+  .gen-front .top-row {
+    text-align: left;
+  }
+
+  .gen-front .card-brand {
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: rgba(255,255,255,0.45);
+    text-transform: uppercase;
+  }
+
+  .gen-front .photo-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gen-front .photo-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    border: 3px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+
+  .gen-front .photo-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gen-front .bottom-content {
+    text-align: center;
+  }
+
+  .gen-front .card-pet-name {
+    font-size: 38px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  /* BACK CARD */
+  .gen-back {
+    width: 340px;
+    min-height: 430px;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    background: #FAFAF6;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+  }
+
+  .gen-back .accent-bar {
+    height: 4px;
+    background: var(--primary);
+  }
+
+  .gen-back .inner {
+    padding: 20px 24px;
+  }
+
+  .gen-back .back-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #EDEDEA;
+  }
+
+  .gen-back .back-brand {
+    font-family: 'Outfit', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+
+  .gen-back .back-type {
+    font-size: 10px;
+    font-weight: 500;
+    color: #BBB;
+    letter-spacing: 1px;
+  }
+
+  .gen-back .pet-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .gen-back .pet-photo-sm {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #EFEFE8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .gen-back .pet-photo-sm img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gen-back .pet-detail { flex: 1; }
+
+  .gen-back .pet-name-sm {
+    font-size: 15px;
+    font-weight: 900;
+    color: #1A1A1A;
+    line-height: 1;
+  }
+
+  .gen-back .pet-suffix-sm {
+    font-size: 10px;
+    color: #BBB;
+    margin-top: 3px;
+  }
+
+  .gen-back .check-date-sm {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: #CCC;
+    text-align: right;
+  }
+
+  .gen-back .checklist-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #BBB;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    margin-top: 6px;
+  }
+
+  .gen-back .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #F0F0EC;
+  }
+  .gen-back .check-item:last-child {
+    border-bottom: none;
+  }
+
+  .gen-back .check-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+  }
+
+  .gen-back .check-icon.hit {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  .gen-back .check-icon.clear {
+    background: #EDEDEA;
+    color: #CCC;
+  }
+
+  .gen-back .check-text {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.4;
+  }
+
+  .gen-back .check-text.dimmed {
+    color: #CCC;
+  }
+
+  /* All Clear */
+  .gen-back .all-clear {
+    text-align: center;
+    padding: 24px 0;
+  }
+
+  .gen-back .all-clear-check {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin: 0 auto 10px;
+  }
+
+  .gen-back .all-clear-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #888;
+    line-height: 1.7;
+  }
+
+  .gen-back .back-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid #EDEDEA;
+  }
+
+  .gen-back .footer-text {
+    font-size: 9px;
+    color: #CCC;
+    letter-spacing: 0.5px;
+  }
+
+  /* Download Buttons */
+  .download-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    margin-bottom: 16px;
+  }
+
+  .dl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .dl-btn.front-dl {
+    background: var(--primary);
+    color: var(--white);
+  }
+  .dl-btn.front-dl:hover { background: var(--mid); }
+
+  .dl-btn.back-dl {
+    background: var(--white);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+  .dl-btn.back-dl:hover { border-color: var(--accent); }
+
+  .dl-btn:active { transform: scale(0.97); }
+
+  .restart-link {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .restart-link:hover {
+    color: var(--mid);
+  }
+
+  /* ─── Message area ─── */
+  .result-message {
+    text-align: center;
+    max-width: 340px;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .result-message p {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text-sub);
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 400px) {
+    .gen-front, .gen-back {
+      width: 300px;
+      min-height: auto;
+    }
+    .gen-front { height: 380px; }
+    .gen-front .card-pet-name { font-size: 32px; }
+    .gen-front .photo-circle { width: 130px; height: 130px; }
+    .download-group { max-width: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="brand">KINS WITH</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap hidden" id="progressWrap">
+    <div class="paw-track" id="pawTrack">
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+      <span class="paw">🐾</span>
+    </div>
+    <div class="paw-done" id="pawDone">✓ チェック完了</div>
+  </div>
+
+  <!-- Particle Layer -->
+  <div class="particle-container" id="particleContainer"></div>
+
+  <!-- ═══ INTRO ═══ -->
+  <div class="screen intro" id="screenIntro">
+    <div class="intro-icon">🐾</div>
+    <h1>おうちで皮膚<br>セルフチェック</h1>
+    <p>10個の質問に答えるだけで、<br>ワンちゃんの皮膚の気になるサインを<br>チェックできます。</p>
+    <p>所要時間：約2分</p>
+    <div class="note">※ この結果は診断ではありません。<br>気になるサインがあった場合は<br>獣医師にご相談ください。</div>
+    <button class="btn-primary" onclick="startCheck()">チェックをはじめる</button>
+  </div>
+
+  <!-- ═══ QUESTION SCREENS ═══ -->
+  <div class="screen question-screen hidden" id="screenQuestion">
+    <div class="q-category" id="qCategory"></div>
+    <div class="q-title" id="qTitle"></div>
+    <div class="q-desc" id="qDesc"></div>
+    <div class="q-hint hidden" id="qHint">
+      <div class="q-hint-label">チェックのポイント</div>
+      <p id="qHintText"></p>
+    </div>
+    <div class="answer-group">
+      <button class="answer-btn yes" onclick="answer(true)">あてはまる</button>
+      <button class="answer-btn no" onclick="answer(false)">あてはまらない</button>
+    </div>
+  </div>
+
+  <!-- ═══ INPUT SCREEN ═══ -->
+  <div class="screen input-screen hidden" id="screenInput">
+    <h2>最後に、<br>カードを作りましょう</h2>
+    <div class="sub">チェック結果をかわいいカードにして<br>保存できます。</div>
+
+    <div class="field-label">ワンちゃんのお名前</div>
+    <input type="text" class="text-input" id="petNameInput" placeholder="例：ハナ" maxlength="10">
+
+    <div class="field-label">ワンちゃんの写真</div>
+    <div class="photo-upload-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+      <div class="upload-placeholder" id="uploadPlaceholder">
+        <div class="icon">📷</div>
+        <p>タップして写真を選択</p>
+      </div>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+    <div class="photo-skip"><span>写真なしでもOK</span></div>
+
+    <button class="btn-primary" onclick="generateCards()">カードを作る</button>
+  </div>
+
+  <!-- ═══ RESULT SCREEN ═══ -->
+  <div class="screen result-screen hidden" id="screenResult">
+    <h2 id="resultTitle"></h2>
+    <div class="result-sub">チェック完了</div>
+
+    <div class="result-message" id="resultMessage"></div>
+
+    <div class="card-container">
+      <!-- Front Card -->
+      <div>
+        <div class="card-label">Share Card</div>
+        <div class="gen-front" id="cardFront">
+          <div class="noise"></div>
+          <div class="paper-texture"></div>
+          <div class="gradient-overlay"></div>
+          <div class="inner">
+            <div class="top-row">
+              <div class="card-brand">KINS WITH</div>
+            </div>
+            <div class="photo-area">
+              <div class="photo-circle" id="cardFrontPhoto">🐕</div>
+            </div>
+            <div class="bottom-content">
+              <div class="card-pet-name" id="cardFrontName"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Back Card -->
+      <div>
+        <div class="card-label">Result Card</div>
+        <div class="gen-back" id="cardBack">
+          <div class="accent-bar"></div>
+          <div class="inner">
+            <div class="back-header">
+              <div class="back-brand">KINS WITH</div>
+              <div class="back-type">皮膚けんこうカード</div>
+            </div>
+            <div class="pet-row">
+              <div class="pet-photo-sm" id="cardBackPhoto">🐕</div>
+              <div class="pet-detail">
+                <div class="pet-name-sm" id="cardBackName"></div>
+                <div class="pet-suffix-sm">の飼い主さん</div>
+              </div>
+              <div class="check-date-sm" id="cardBackDate"></div>
+            </div>
+            <div id="cardBackBody"></div>
+            <div class="back-footer">
+              <div class="footer-text">KINS WITH Animal Hospital</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="download-group">
+      <button class="dl-btn front-dl" onclick="downloadCard('cardFront', 'share')">📥 共有用カードを保存</button>
+      <button class="dl-btn back-dl" onclick="downloadCard('cardBack', 'result')">📥 結果カードを保存</button>
+    </div>
+
+    <a class="restart-link" onclick="restart()">もう一度チェックする</a>
+  </div>
+
+</div>
+
+<script>
+// ─── Question Data ───
+const questions = [
+  {
+    category: 'BEHAVIOR',
+    title: '体をよく掻いていますか？',
+    desc: '前足や後ろ足で体を掻く回数が増えたと感じる場合にチェックしてください。',
+    hint: '1日に何度も掻いている、掻いた後に赤くなっている、などが目安です。',
+    label: '体をよく掻いている'
+  },
+  {
+    category: 'BEHAVIOR',
+    title: '足先やお腹を舐め続けていますか？',
+    desc: '同じ場所を繰り返し舐めている場合にチェックしてください。',
+    hint: '足先が茶色く変色している場合は、長期間舐め続けているサインです。',
+    label: '足先やお腹を舐め続ける'
+  },
+  {
+    category: 'BEHAVIOR',
+    title: '顔や耳を床や家具にこすりつけていますか？',
+    desc: 'カーペットやソファに顔を擦りつける仕草が見られる場合にチェックしてください。',
+    hint: null,
+    label: '顔や耳を床や家具にこすりつける'
+  },
+  {
+    category: 'APPEARANCE',
+    title: '皮膚に赤みがありますか？',
+    desc: 'お腹、脇、内股、耳の内側など、皮膚が赤くなっている部分がある場合にチェックしてください。',
+    hint: '毛をかき分けて皮膚の色を確認してみてください。',
+    label: '皮膚に赤みがある'
+  },
+  {
+    category: 'APPEARANCE',
+    title: 'ぶつぶつ・かさぶたがありますか？',
+    desc: '小さな赤いぶつぶつや、かさぶたのようなものが見られる場合にチェックしてください。',
+    hint: null,
+    label: 'ぶつぶつ・かさぶたがある'
+  },
+  {
+    category: 'APPEARANCE',
+    title: '毛が部分的に抜けていますか？',
+    desc: '一部だけ毛が薄い、円形に抜けている、などの場合にチェックしてください。',
+    hint: '換毛期の全体的な抜け毛ではなく、部分的な脱毛が対象です。',
+    label: '毛が部分的に抜けている'
+  },
+  {
+    category: 'APPEARANCE',
+    title: '皮膚が黒ずんでいる・ゴワゴワしていますか？',
+    desc: '皮膚の色が黒っぽく変化していたり、厚く硬くなっている部分がある場合にチェックしてください。',
+    hint: '脇の下や股の内側に出やすい症状です。',
+    label: '皮膚が黒ずんでいる・ゴワゴワしている'
+  },
+  {
+    category: 'APPEARANCE',
+    title: 'フケが多いですか？',
+    desc: '白い粉のようなフケが目立つ場合にチェックしてください。',
+    hint: null,
+    label: 'フケが多い'
+  },
+  {
+    category: 'APPEARANCE',
+    title: 'ベタつき・体臭が気になりますか？',
+    desc: '被毛がベタつく、いつもと違う体臭がする場合にチェックしてください。',
+    hint: 'シャンプー後すぐにベタつく場合は要チェックです。',
+    label: 'ベタつき・体臭が気になる'
+  },
+  {
+    category: 'EAR',
+    title: '耳をよく振る・掻く、耳垢がべたつきますか？',
+    desc: '頭をよく振る、耳を後ろ足で掻く、耳垢が茶色くべたつく場合にチェックしてください。',
+    hint: '耳の皮膚トラブルは外耳炎のサインであることが多いです。',
+    label: '耳をよく振る・掻く・耳垢がべたつく'
+  }
+];
+
+// ─── State ───
+let currentQ = 0;
+let answers = [];
+let petName = '';
+let petPhotoDataURL = null;
+
+// ─── Navigation ───
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  const screen = document.getElementById(id);
+  screen.classList.remove('hidden');
+  screen.style.animation = 'none';
+  screen.offsetHeight;
+  screen.style.animation = '';
+}
+
+function updatePaws() {
+  const paws = document.querySelectorAll('#pawTrack .paw');
+  paws.forEach((p, i) => {
+    if (i < currentQ) {
+      if (!p.classList.contains('filled')) {
+        p.classList.add('filled');
+      }
+    } else {
+      p.classList.remove('filled');
+    }
+  });
+}
+
+function startCheck() {
+  currentQ = 0;
+  answers = [];
+  // Reset paws
+  document.querySelectorAll('#pawTrack .paw').forEach(p => p.classList.remove('filled'));
+  document.getElementById('pawDone').classList.remove('show');
+  document.getElementById('progressWrap').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qCategory').textContent = q.category;
+  document.getElementById('qTitle').textContent = q.title;
+  document.getElementById('qDesc').textContent = q.desc;
+
+  const hintEl = document.getElementById('qHint');
+  if (q.hint) {
+    document.getElementById('qHintText').textContent = q.hint;
+    hintEl.classList.remove('hidden');
+  } else {
+    hintEl.classList.add('hidden');
+  }
+
+  showScreen('screenQuestion');
+  updatePaws();
+}
+
+// ─── Particles ───
+const PARTICLE_COLORS = ['#C55E56', '#965D57', '#CDA094', '#EBD5CD', '#5A3C37'];
+
+function spawnParticles() {
+  const container = document.getElementById('particleContainer');
+  const count = 14;
+  const spread = 120;
+  const maxSize = 8;
+  const duration = 0.8;
+
+  // Spawn from center of viewport
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2 + 60;
+
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+
+    const size = Math.random() * maxSize + 3;
+    const tx = (Math.random() - 0.5) * spread * 2;
+    const ty = (Math.random() - 0.7) * spread * 2;
+    const rot = (Math.random() - 0.5) * 720;
+    const d = duration + Math.random() * 0.3;
+    const delay = Math.random() * 0.1;
+    const color = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)];
+
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.background = color;
+    el.style.left = cx + 'px';
+    el.style.top = cy + 'px';
+    el.style.setProperty('--tx', tx + 'px');
+    el.style.setProperty('--ty', ty + 'px');
+    el.style.setProperty('--rot', rot + 'deg');
+    el.style.setProperty('--duration', d + 's');
+    el.style.animationDelay = delay + 's';
+
+    container.appendChild(el);
+    setTimeout(() => el.remove(), (d + delay) * 1000 + 100);
+  }
+}
+
+function answer(isYes) {
+  // Particles first
+  spawnParticles();
+
+  answers.push(isYes);
+  currentQ++;
+
+  if (currentQ < questions.length) {
+    setTimeout(() => showQuestion(), 250);
+  } else {
+    // Fill last paw and show done
+    updatePaws();
+    document.getElementById('pawDone').classList.add('show');
+    setTimeout(() => showScreen('screenInput'), 400);
+  }
+}
+
+// ─── Photo ───
+function handlePhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    petPhotoDataURL = ev.target.result;
+    const area = document.getElementById('photoArea');
+    area.classList.add('has-photo');
+    document.getElementById('uploadPlaceholder').classList.add('hidden');
+
+    // Remove existing preview if any
+    const existing = area.querySelector('img');
+    if (existing) existing.remove();
+
+    const img = document.createElement('img');
+    img.src = petPhotoDataURL;
+    area.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── Card Generation ───
+function generateCards() {
+  petName = document.getElementById('petNameInput').value.trim() || 'ワンちゃん';
+
+  const hitCount = answers.filter(a => a).length;
+  const today = new Date();
+  const dateStr = today.getFullYear() + '.' +
+    String(today.getMonth() + 1).padStart(2, '0') + '.' +
+    String(today.getDate()).padStart(2, '0');
+
+  // --- Result title & message ---
+  document.getElementById('resultTitle').textContent = petName + ' のけんこうカード';
+
+  const msgEl = document.getElementById('resultMessage');
+  if (hitCount === 0) {
+    msgEl.innerHTML = '<p>今のところ気になるサインは見つかりませんでした。<br>定期的にチェックしてあげてくださいね。</p>';
+  } else {
+    msgEl.innerHTML = '<p>気になるサインが <strong>' + hitCount + '個</strong> ありました。<br>症状が続くようなら、一度獣医師に<br>相談してみてください。</p>';
+  }
+
+  // --- Front Card ---
+  const frontPhoto = document.getElementById('cardFrontPhoto');
+  if (petPhotoDataURL) {
+    frontPhoto.innerHTML = '<img src="' + petPhotoDataURL + '">';
+  } else {
+    frontPhoto.textContent = '🐕';
+  }
+  document.getElementById('cardFrontName').textContent = petName;
+
+  // --- Back Card ---
+  const backPhoto = document.getElementById('cardBackPhoto');
+  if (petPhotoDataURL) {
+    backPhoto.innerHTML = '<img src="' + petPhotoDataURL + '">';
+  } else {
+    backPhoto.textContent = '🐕';
+  }
+  document.getElementById('cardBackName').textContent = petName;
+  document.getElementById('cardBackDate').textContent = dateStr;
+
+  const bodyEl = document.getElementById('cardBackBody');
+
+  if (hitCount === 0) {
+    bodyEl.innerHTML = `
+      <div class="all-clear">
+        <div class="all-clear-check">✔</div>
+        <div class="all-clear-text">チェック済み<br>気になるサインは<br>見つかりませんでした</div>
+      </div>`;
+  } else {
+    let html = '<div class="checklist-label">チェック項目</div>';
+    questions.forEach((q, i) => {
+      const hit = answers[i];
+      html += `
+        <div class="check-item">
+          <div class="check-icon ${hit ? 'hit' : 'clear'}">${hit ? '✔' : '–'}</div>
+          <div class="check-text ${hit ? '' : 'dimmed'}">${q.label}</div>
+        </div>`;
+    });
+    bodyEl.innerHTML = html;
+  }
+
+  showScreen('screenResult');
+}
+
+// ─── Download ───
+async function downloadCard(elementId, suffix) {
+  const el = document.getElementById(elementId);
+  if (typeof html2canvas === 'undefined') {
+    alert('画像生成ライブラリを読み込み中です。少し待ってからもう一度お試しください。');
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false
+    });
+
+    const link = document.createElement('a');
+    const name = petName || 'card';
+    link.download = name + '_' + suffix + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (err) {
+    console.error('Download error:', err);
+    alert('画像の生成に失敗しました。スクリーンショットでの保存をお試しください。');
+  }
+}
+
+// ─── Restart ───
+function restart() {
+  currentQ = 0;
+  answers = [];
+  petName = '';
+  petPhotoDataURL = null;
+
+  document.getElementById('petNameInput').value = '';
+  const area = document.getElementById('photoArea');
+  area.classList.remove('has-photo');
+  const existingImg = area.querySelector('img');
+  if (existingImg) existingImg.remove();
+  document.getElementById('uploadPlaceholder').classList.remove('hidden');
+  document.getElementById('photoInput').value = '';
+
+  document.getElementById('progressWrap').classList.add('hidden');
+  document.querySelectorAll('#pawTrack .paw').forEach(p => p.classList.remove('filled'));
+  document.getElementById('pawDone').classList.remove('show');
+  showScreen('screenIntro');
+}
+</script>
+
+</body>
+</html>
