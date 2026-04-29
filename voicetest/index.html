@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BTリモコン キーイベント検証</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a1929;
+    color: #e0f2ff;
+    min-height: 100vh;
+    padding: 16px;
+    padding-bottom: 32px;
+  }
+  h1 {
+    font-size: 18px;
+    color: #4dd0e1;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 12px;
+    color: #7fb3d5;
+    margin-bottom: 16px;
+  }
+  .status {
+    background: #1a3a52;
+    border-left: 3px solid #4dd0e1;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .status.active {
+    border-left-color: #66bb6a;
+    background: #1a4a3a;
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  button {
+    background: #1565c0;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 100px;
+  }
+  button:active { background: #0d47a1; }
+  button.danger { background: #c62828; }
+  button.danger:active { background: #8e0000; }
+  .last-event {
+    background: #1a3a52;
+    padding: 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    border: 2px solid #4dd0e1;
+  }
+  .last-event-label {
+    font-size: 11px;
+    color: #7fb3d5;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .last-event-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4dd0e1;
+    word-break: break-all;
+  }
+  .last-event-detail {
+    font-size: 12px;
+    color: #b0bec5;
+    margin-top: 8px;
+    font-family: monospace;
+  }
+  .log {
+    background: #0d1b2a;
+    border: 1px solid #1a3a52;
+    border-radius: 6px;
+    padding: 12px;
+    max-height: 50vh;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .log-entry {
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    background: #1a2c3d;
+    border-radius: 4px;
+    border-left: 2px solid #4dd0e1;
+  }
+  .log-entry.keyup { border-left-color: #ff9800; opacity: 0.7; }
+  .log-entry.media { border-left-color: #66bb6a; }
+  .log-entry.bg { border-left-color: #ab47bc; }
+  .log-time {
+    color: #7fb3d5;
+    font-size: 10px;
+  }
+  .log-key {
+    color: #4dd0e1;
+    font-weight: bold;
+  }
+  .log-empty {
+    color: #5a7a90;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+  }
+  .info {
+    font-size: 11px;
+    color: #7fb3d5;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+  .info code {
+    background: #1a3a52;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #4dd0e1;
+  }
+  .bg-test-area {
+    background: #2a1a3a;
+    border: 1px solid #ab47bc;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #e1bee7;
+  }
+</style>
+</head>
+<body>
+  <h1>🎮 BTリモコン キーイベント検証</h1>
+  <div class="subtitle">セルキィ音声チャット v2 / Phase 5 用</div>
+
+  <div id="status" class="status">
+    準備OK。リモコンのボタンを押してみて
+  </div>
+
+  <div class="controls">
+    <button onclick="clearLog()">ログクリア</button>
+    <button onclick="copyLog()">ログをコピー</button>
+    <button class="danger" onclick="toggleWakeLock()">
+      <span id="wakeLockBtn">画面OFF防止</span>
+    </button>
+  </div>
+
+  <div class="last-event">
+    <div class="last-event-label">最後に検知したイベント</div>
+    <div class="last-event-value" id="lastKey">—</div>
+    <div class="last-event-detail" id="lastDetail">ボタンを押すとここに表示されます</div>
+  </div>
+
+  <div class="bg-test-area">
+    <strong>🌙 バックグラウンド動作テスト</strong><br>
+    画面ロック → ボタン押す → 画面再点灯後にこのページに戻ってログ確認。<br>
+    ログに記録されてれば、ロック中もイベント取れてる。<br>
+    （ロック前に「画面OFF防止」をONにしておくとSafariが落ちにくい）
+  </div>
+
+  <div class="log" id="log">
+    <div class="log-empty">まだイベントがありません</div>
+  </div>
+
+  <div class="info">
+    <strong>確認ポイント：</strong><br>
+    • ボタンごとにどんな <code>key</code> / <code>code</code> が来るか<br>
+    • 短押しと長押しで違いがあるか<br>
+    • 複数ボタンの判別ができるか<br>
+    • 画面ロック中にも拾えるか（バックグラウンド動作）
+  </div>
+
+<script>
+  const logEl = document.getElementById('log');
+  const lastKeyEl = document.getElementById('lastKey');
+  const lastDetailEl = document.getElementById('lastDetail');
+  const statusEl = document.getElementById('status');
+  let entries = [];
+  let wakeLock = null;
+
+  function formatTime(d) {
+    const h = String(d.getHours()).padStart(2, '0');
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const s = String(d.getSeconds()).padStart(2, '0');
+    const ms = String(d.getMilliseconds()).padStart(3, '0');
+    return `${h}:${m}:${s}.${ms}`;
+  }
+
+  function addEntry(type, data) {
+    const time = formatTime(new Date());
+    entries.push({ time, type, data });
+    renderLog();
+
+    if (type === 'keydown' || type === 'mediakey') {
+      lastKeyEl.textContent = data.key || data.action || '?';
+      lastDetailEl.textContent = JSON.stringify(data, null, 2);
+      statusEl.classList.add('active');
+      statusEl.textContent = `✓ イベント検知中（${entries.length}件）`;
+    }
+  }
+
+  function renderLog() {
+    if (entries.length === 0) {
+      logEl.innerHTML = '<div class="log-empty">まだイベントがありません</div>';
+      return;
+    }
+    logEl.innerHTML = entries.slice().reverse().map(e => {
+      const cls = e.type === 'keyup' ? 'keyup'
+                : e.type === 'mediakey' ? 'media'
+                : e.type === 'background' ? 'bg'
+                : '';
+      let content = '';
+      if (e.type === 'keydown' || e.type === 'keyup') {
+        content = `<span class="log-key">${e.data.key}</span> | code: ${e.data.code} | keyCode: ${e.data.keyCode}`;
+      } else if (e.type === 'mediakey') {
+        content = `<span class="log-key">${e.data.action}</span> (Media Session API)`;
+      } else if (e.type === 'background') {
+        content = e.data.message;
+      }
+      return `<div class="log-entry ${cls}">
+        <span class="log-time">${e.time}</span> [${e.type}]<br>
+        ${content}
+      </div>`;
+    }).join('');
+    logEl.scrollTop = 0;
+  }
+
+  function clearLog() {
+    entries = [];
+    renderLog();
+    lastKeyEl.textContent = '—';
+    lastDetailEl.textContent = 'ボタンを押すとここに表示されます';
+    statusEl.classList.remove('active');
+    statusEl.textContent = '準備OK。リモコンのボタンを押してみて';
+  }
+
+  function copyLog() {
+    const text = entries.map(e =>
+      `[${e.time}] ${e.type}: ${JSON.stringify(e.data)}`
+    ).join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      const original = statusEl.textContent;
+      statusEl.textContent = '✓ クリップボードにコピーしました';
+      setTimeout(() => { statusEl.textContent = original; }, 1500);
+    }).catch(err => {
+      alert('コピー失敗: ' + err);
+    });
+  }
+
+  // キーイベント
+  document.addEventListener('keydown', (e) => {
+    addEntry('keydown', {
+      key: e.key,
+      code: e.code,
+      keyCode: e.keyCode,
+      ctrlKey: e.ctrlKey,
+      altKey: e.altKey,
+      shiftKey: e.shiftKey,
+      metaKey: e.metaKey
+    });
+  });
+
+  document.addEventListener('keyup', (e) => {
+    addEntry('keyup', {
+      key: e.key,
+      code: e.code,
+      keyCode: e.keyCode
+    });
+  });
+
+  // Media Session API（音量・再生ボタン系のリモコンはこっちで来ることも）
+  if ('mediaSession' in navigator) {
+    const actions = ['play', 'pause', 'stop', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward'];
+    actions.forEach(action => {
+      try {
+        navigator.mediaSession.setActionHandler(action, () => {
+          addEntry('mediakey', { action });
+        });
+      } catch (e) { /* 未対応のアクション */ }
+    });
+
+    // ダミー音声を仕込んでおくとMedia Session有効化される
+    const audio = new Audio();
+    audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==';
+    audio.loop = true;
+    document.addEventListener('click', () => {
+      audio.play().catch(() => {});
+    }, { once: true });
+  }
+
+  // バックグラウンド検知
+  document.addEventListener('visibilitychange', () => {
+    addEntry('background', {
+      message: document.hidden ? '画面非表示になりました' : '画面表示に戻りました'
+    });
+  });
+
+  // Wake Lock（画面OFF防止）
+  async function toggleWakeLock() {
+    const btn = document.getElementById('wakeLockBtn');
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+      btn.textContent = '画面OFF防止';
+    } else {
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        btn.textContent = '画面OFF中...解除';
+        wakeLock.addEventListener('release', () => {
+          btn.textContent = '画面OFF防止';
+          wakeLock = null;
+        });
+      } catch (err) {
+        alert('Wake Lock失敗: ' + err.message);
+      }
+    }
+  }
+
+  // 起動時にデバイス情報をログ
+  addEntry('background', {
+    message: `起動 / UA: ${navigator.userAgent.substring(0, 60)}...`
+  });
+</script>
+</body>
+</html>
