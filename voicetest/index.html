@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>BTリモコン キーイベント検証</title>
+<title>BTリモコン 検証 v2</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -12,86 +12,110 @@
     color: #e0f2ff;
     min-height: 100vh;
     padding: 16px;
-    padding-bottom: 32px;
   }
-  h1 {
-    font-size: 18px;
-    color: #4dd0e1;
-    margin-bottom: 4px;
-  }
-  .subtitle {
-    font-size: 12px;
-    color: #7fb3d5;
-    margin-bottom: 16px;
-  }
-  .status {
+  h1 { font-size: 18px; color: #4dd0e1; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #7fb3d5; margin-bottom: 16px; }
+
+  .step {
     background: #1a3a52;
-    border-left: 3px solid #4dd0e1;
-    padding: 12px;
+    padding: 14px;
     border-radius: 6px;
-    margin-bottom: 16px;
-    font-size: 14px;
+    margin-bottom: 12px;
+    border-left: 3px solid #4dd0e1;
   }
-  .status.active {
-    border-left-color: #66bb6a;
-    background: #1a4a3a;
+  .step-num {
+    display: inline-block;
+    background: #4dd0e1;
+    color: #0a1929;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 24px;
+    font-weight: bold;
+    margin-right: 8px;
+    font-size: 13px;
   }
-  .controls {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-  button {
+  .step-title { font-weight: bold; font-size: 14px; }
+  .step-desc { font-size: 12px; color: #b0bec5; margin-top: 6px; margin-left: 32px; }
+
+  button.big {
+    width: 100%;
     background: #1565c0;
     color: white;
     border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
     cursor: pointer;
-    flex: 1;
-    min-width: 100px;
   }
-  button:active { background: #0d47a1; }
-  button.danger { background: #c62828; }
-  button.danger:active { background: #8e0000; }
+  button.big:active { background: #0d47a1; }
+  button.big.playing { background: #2e7d32; }
+  button.big.playing:active { background: #1b5e20; }
+
+  .status-box {
+    background: #1a3a52;
+    padding: 14px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid #2a4a62;
+  }
+  .status-row:last-child { border-bottom: none; }
+  .status-label { color: #7fb3d5; }
+  .status-value { font-family: monospace; color: #4dd0e1; }
+  .status-value.ok { color: #66bb6a; }
+  .status-value.ng { color: #ef5350; }
+
   .last-event {
     background: #1a3a52;
     padding: 16px;
     border-radius: 6px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     border: 2px solid #4dd0e1;
   }
   .last-event-label {
     font-size: 11px;
     color: #7fb3d5;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 1px;
   }
   .last-event-value {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
     color: #4dd0e1;
     word-break: break-all;
   }
-  .last-event-detail {
+
+  .controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  .controls button {
+    flex: 1;
+    background: #455a64;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
     font-size: 12px;
-    color: #b0bec5;
-    margin-top: 8px;
-    font-family: monospace;
   }
+
   .log {
     background: #0d1b2a;
     border: 1px solid #1a3a52;
     border-radius: 6px;
-    padding: 12px;
-    max-height: 50vh;
+    padding: 10px;
+    max-height: 40vh;
     overflow-y: auto;
     font-family: monospace;
     font-size: 11px;
-    line-height: 1.6;
+    line-height: 1.5;
   }
   .log-entry {
     padding: 6px 8px;
@@ -100,113 +124,94 @@
     border-radius: 4px;
     border-left: 2px solid #4dd0e1;
   }
-  .log-entry.keyup { border-left-color: #ff9800; opacity: 0.7; }
   .log-entry.media { border-left-color: #66bb6a; }
+  .log-entry.keydown { border-left-color: #4dd0e1; }
   .log-entry.bg { border-left-color: #ab47bc; }
-  .log-time {
-    color: #7fb3d5;
-    font-size: 10px;
-  }
-  .log-key {
-    color: #4dd0e1;
-    font-weight: bold;
-  }
-  .log-empty {
-    color: #5a7a90;
-    text-align: center;
-    padding: 20px;
-    font-style: italic;
-  }
-  .info {
-    font-size: 11px;
-    color: #7fb3d5;
-    margin-top: 12px;
-    line-height: 1.6;
-  }
-  .info code {
-    background: #1a3a52;
-    padding: 2px 6px;
-    border-radius: 3px;
-    color: #4dd0e1;
-  }
-  .bg-test-area {
-    background: #2a1a3a;
-    border: 1px solid #ab47bc;
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 16px;
-    font-size: 12px;
-    color: #e1bee7;
-  }
+  .log-time { color: #7fb3d5; font-size: 10px; }
+  .log-key { color: #4dd0e1; font-weight: bold; }
+  .log-empty { color: #5a7a90; text-align: center; padding: 20px; font-style: italic; }
 </style>
 </head>
 <body>
-  <h1>🎮 BTリモコン キーイベント検証</h1>
-  <div class="subtitle">セルキィ音声チャット v2 / Phase 5 用</div>
+  <h1>🎮 BTリモコン 検証 v2</h1>
+  <div class="subtitle">音声再生してMedia Session有効化してから検証</div>
 
-  <div id="status" class="status">
-    準備OK。リモコンのボタンを押してみて
+  <div class="step">
+    <span class="step-num">1</span>
+    <span class="step-title">下のボタンで音声再生を開始</span>
+    <div class="step-desc">無音ループ音声を再生してMedia Session APIを有効化する</div>
   </div>
 
-  <div class="controls">
-    <button onclick="clearLog()">ログクリア</button>
-    <button onclick="copyLog()">ログをコピー</button>
-    <button class="danger" onclick="toggleWakeLock()">
-      <span id="wakeLockBtn">画面OFF防止</span>
-    </button>
+  <button class="big" id="playBtn" onclick="togglePlay()">▶ 音声再生を開始</button>
+
+  <div class="step">
+    <span class="step-num">2</span>
+    <span class="step-title">リモコンの各ボタンを押す</span>
+    <div class="step-desc">再生/一時停止、次へ、前へ、音量、を全部試して</div>
+  </div>
+
+  <div class="status-box">
+    <div class="status-row">
+      <span class="status-label">音声再生状態</span>
+      <span class="status-value ng" id="playStatus">停止中</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Media Session 対応</span>
+      <span class="status-value" id="mediaSessionStatus">確認中</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">検知イベント数</span>
+      <span class="status-value" id="eventCount">0</span>
+    </div>
   </div>
 
   <div class="last-event">
     <div class="last-event-label">最後に検知したイベント</div>
     <div class="last-event-value" id="lastKey">—</div>
-    <div class="last-event-detail" id="lastDetail">ボタンを押すとここに表示されます</div>
   </div>
 
-  <div class="bg-test-area">
-    <strong>🌙 バックグラウンド動作テスト</strong><br>
-    画面ロック → ボタン押す → 画面再点灯後にこのページに戻ってログ確認。<br>
-    ログに記録されてれば、ロック中もイベント取れてる。<br>
-    （ロック前に「画面OFF防止」をONにしておくとSafariが落ちにくい）
+  <div class="controls">
+    <button onclick="clearLog()">クリア</button>
+    <button onclick="copyLog()">コピー</button>
   </div>
 
   <div class="log" id="log">
     <div class="log-empty">まだイベントがありません</div>
   </div>
 
-  <div class="info">
-    <strong>確認ポイント：</strong><br>
-    • ボタンごとにどんな <code>key</code> / <code>code</code> が来るか<br>
-    • 短押しと長押しで違いがあるか<br>
-    • 複数ボタンの判別ができるか<br>
-    • 画面ロック中にも拾えるか（バックグラウンド動作）
-  </div>
-
 <script>
   const logEl = document.getElementById('log');
   const lastKeyEl = document.getElementById('lastKey');
-  const lastDetailEl = document.getElementById('lastDetail');
-  const statusEl = document.getElementById('status');
+  const playStatusEl = document.getElementById('playStatus');
+  const mediaSessionStatusEl = document.getElementById('mediaSessionStatus');
+  const eventCountEl = document.getElementById('eventCount');
+  const playBtn = document.getElementById('playBtn');
+
   let entries = [];
-  let wakeLock = null;
+  let audio = null;
+  let isPlaying = false;
+
+  // Media Session対応確認
+  if ('mediaSession' in navigator) {
+    mediaSessionStatusEl.textContent = '✓ 対応';
+    mediaSessionStatusEl.className = 'status-value ok';
+  } else {
+    mediaSessionStatusEl.textContent = '✗ 非対応';
+    mediaSessionStatusEl.className = 'status-value ng';
+  }
 
   function formatTime(d) {
-    const h = String(d.getHours()).padStart(2, '0');
-    const m = String(d.getMinutes()).padStart(2, '0');
-    const s = String(d.getSeconds()).padStart(2, '0');
-    const ms = String(d.getMilliseconds()).padStart(3, '0');
-    return `${h}:${m}:${s}.${ms}`;
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}`;
   }
 
   function addEntry(type, data) {
     const time = formatTime(new Date());
     entries.push({ time, type, data });
+    eventCountEl.textContent = entries.length;
     renderLog();
 
-    if (type === 'keydown' || type === 'mediakey') {
+    if (type === 'mediakey' || type === 'keydown') {
       lastKeyEl.textContent = data.key || data.action || '?';
-      lastDetailEl.textContent = JSON.stringify(data, null, 2);
-      statusEl.classList.add('active');
-      statusEl.textContent = `✓ イベント検知中（${entries.length}件）`;
     }
   }
 
@@ -216,16 +221,15 @@
       return;
     }
     logEl.innerHTML = entries.slice().reverse().map(e => {
-      const cls = e.type === 'keyup' ? 'keyup'
-                : e.type === 'mediakey' ? 'media'
-                : e.type === 'background' ? 'bg'
-                : '';
+      const cls = e.type === 'mediakey' ? 'media'
+                : e.type === 'keydown' ? 'keydown'
+                : e.type === 'background' ? 'bg' : '';
       let content = '';
-      if (e.type === 'keydown' || e.type === 'keyup') {
-        content = `<span class="log-key">${e.data.key}</span> | code: ${e.data.code} | keyCode: ${e.data.keyCode}`;
+      if (e.type === 'keydown') {
+        content = `<span class="log-key">${e.data.key}</span> | code: ${e.data.code}`;
       } else if (e.type === 'mediakey') {
-        content = `<span class="log-key">${e.data.action}</span> (Media Session API)`;
-      } else if (e.type === 'background') {
+        content = `<span class="log-key">🎵 ${e.data.action}</span>`;
+      } else {
         content = e.data.message;
       }
       return `<div class="log-entry ${cls}">
@@ -238,23 +242,104 @@
 
   function clearLog() {
     entries = [];
-    renderLog();
+    eventCountEl.textContent = 0;
     lastKeyEl.textContent = '—';
-    lastDetailEl.textContent = 'ボタンを押すとここに表示されます';
-    statusEl.classList.remove('active');
-    statusEl.textContent = '準備OK。リモコンのボタンを押してみて';
+    renderLog();
   }
 
   function copyLog() {
-    const text = entries.map(e =>
-      `[${e.time}] ${e.type}: ${JSON.stringify(e.data)}`
-    ).join('\n');
+    const text = entries.map(e => `[${e.time}] ${e.type}: ${JSON.stringify(e.data)}`).join('\n');
     navigator.clipboard.writeText(text).then(() => {
-      const original = statusEl.textContent;
-      statusEl.textContent = '✓ クリップボードにコピーしました';
-      setTimeout(() => { statusEl.textContent = original; }, 1500);
-    }).catch(err => {
-      alert('コピー失敗: ' + err);
+      alert('コピーしました');
+    });
+  }
+
+  // 無音音声を生成（Web Audio APIで作る、外部ファイル不要）
+  function createSilentAudio() {
+    // 1秒の無音WAV
+    const sampleRate = 44100;
+    const duration = 1;
+    const numSamples = sampleRate * duration;
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+
+    // WAVヘッダー
+    const writeString = (offset, str) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, 'data');
+    view.setUint32(40, numSamples * 2, true);
+    // データ部分は0埋めのまま（無音）
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  function togglePlay() {
+    if (!audio) {
+      const blob = createSilentAudio();
+      audio = new Audio(URL.createObjectURL(blob));
+      audio.loop = true;
+
+      audio.addEventListener('play', () => {
+        isPlaying = true;
+        playStatusEl.textContent = '再生中';
+        playStatusEl.className = 'status-value ok';
+        playBtn.textContent = '■ 停止';
+        playBtn.classList.add('playing');
+        addEntry('background', { message: '音声再生開始（Media Session有効化）' });
+
+        // メタデータも設定（リモコンに認識させやすくするため）
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: 'BTリモコン検証',
+            artist: 'セルキィ',
+            album: 'Phase 5'
+          });
+          navigator.mediaSession.playbackState = 'playing';
+        }
+      });
+
+      audio.addEventListener('pause', () => {
+        isPlaying = false;
+        playStatusEl.textContent = '停止中';
+        playStatusEl.className = 'status-value ng';
+        playBtn.textContent = '▶ 音声再生を開始';
+        playBtn.classList.remove('playing');
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'paused';
+        }
+      });
+    }
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch(err => {
+        alert('再生失敗: ' + err.message);
+      });
+    }
+  }
+
+  // Media Session ハンドラ
+  if ('mediaSession' in navigator) {
+    const actions = ['play', 'pause', 'stop', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward'];
+    actions.forEach(action => {
+      try {
+        navigator.mediaSession.setActionHandler(action, (details) => {
+          addEntry('mediakey', { action, details: details ? JSON.stringify(details) : null });
+        });
+      } catch (e) {}
     });
   }
 
@@ -263,73 +348,15 @@
     addEntry('keydown', {
       key: e.key,
       code: e.code,
-      keyCode: e.keyCode,
-      ctrlKey: e.ctrlKey,
-      altKey: e.altKey,
-      shiftKey: e.shiftKey,
-      metaKey: e.metaKey
-    });
-  });
-
-  document.addEventListener('keyup', (e) => {
-    addEntry('keyup', {
-      key: e.key,
-      code: e.code,
       keyCode: e.keyCode
     });
   });
 
-  // Media Session API（音量・再生ボタン系のリモコンはこっちで来ることも）
-  if ('mediaSession' in navigator) {
-    const actions = ['play', 'pause', 'stop', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward'];
-    actions.forEach(action => {
-      try {
-        navigator.mediaSession.setActionHandler(action, () => {
-          addEntry('mediakey', { action });
-        });
-      } catch (e) { /* 未対応のアクション */ }
-    });
-
-    // ダミー音声を仕込んでおくとMedia Session有効化される
-    const audio = new Audio();
-    audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA==';
-    audio.loop = true;
-    document.addEventListener('click', () => {
-      audio.play().catch(() => {});
-    }, { once: true });
-  }
-
   // バックグラウンド検知
   document.addEventListener('visibilitychange', () => {
     addEntry('background', {
-      message: document.hidden ? '画面非表示になりました' : '画面表示に戻りました'
+      message: document.hidden ? '画面非表示' : '画面表示に復帰'
     });
-  });
-
-  // Wake Lock（画面OFF防止）
-  async function toggleWakeLock() {
-    const btn = document.getElementById('wakeLockBtn');
-    if (wakeLock) {
-      await wakeLock.release();
-      wakeLock = null;
-      btn.textContent = '画面OFF防止';
-    } else {
-      try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        btn.textContent = '画面OFF中...解除';
-        wakeLock.addEventListener('release', () => {
-          btn.textContent = '画面OFF防止';
-          wakeLock = null;
-        });
-      } catch (err) {
-        alert('Wake Lock失敗: ' + err.message);
-      }
-    }
-  }
-
-  // 起動時にデバイス情報をログ
-  addEntry('background', {
-    message: `起動 / UA: ${navigator.userAgent.substring(0, 60)}...`
   });
 </script>
 </body>
